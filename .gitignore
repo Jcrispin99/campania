@@ -37,3 +37,6 @@ database/*.sqlite
 /public/app.html
 /public/_expo/
 /public/assets/
+
+# Private contact import source
+/Book1.xlsx

@@ -24,7 +24,10 @@ final class PacienteResource extends JsonResource
             'nombre_area' => $this->nombre_area,
             'nombre_unidad_org' => $this->nombre_unidad_org,
             'telefono' => $this->telefono,
-            'correo_electronico' => $this->correo_electronico,
+            'correo_electronico' => $this->correos->firstWhere('predeterminado', true)?->correo,
+            'correos' => $this->correos->map(fn ($email) => [
+                'id' => $email->id, 'correo' => $email->correo, 'predeterminado' => $email->predeterminado,
+            ])->values(),
             'asistencia' => $this->asistencia,
             'presion_arterial' => $this->presion_arterial,
             'fecha' => $this->fecha?->format('Y-m-d'),

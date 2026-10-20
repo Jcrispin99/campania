@@ -9,6 +9,7 @@ use App\Http\Requests\Api\V1\StoreAtencionRequest;
 use App\Http\Resources\AtencionResource;
 use App\Models\Atencion;
 use App\Models\Paciente;
+use App\Services\PacienteCorreoService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,7 @@ final class AtencionController extends ApiController
         ]);
         $dni = $request->string('dni')->trim()->toString();
         $search = $request->string('search')->trim()->toString();
-        $atenciones = Atencion::query()->with(['paciente', 'user'])
+        $atenciones = Atencion::query()->with(['paciente.correos', 'user'])
             ->when($dni !== '', fn (Builder $query): Builder => $query->whereHas('paciente', fn (Builder $pacientes): Builder => $pacientes->where('dni', $dni)))
             ->when($search !== '', fn (Builder $query): Builder => $query->whereHas('paciente', fn (Builder $pacientes): Builder => $pacientes->where(
                 fn (Builder $inner): Builder => $inner->where('nombre_completo', 'like', "%{$search}%")->orWhere('dni', 'like', "%{$search}%")
@@ -39,17 +40,16 @@ final class AtencionController extends ApiController
         ]);
     }
 
-    public function store(StoreAtencionRequest $request): JsonResponse
+    public function store(StoreAtencionRequest $request, PacienteCorreoService $emails): JsonResponse
     {
         $data = $request->validated();
         $paciente = Paciente::query()->where('dni', $data['dni'])->firstOrFail();
         $user = $request->user();
         abort_if($user === null, 401);
-        $atencion = DB::transaction(function () use ($paciente, $user, $data): Atencion {
-            $paciente->update([
-                'edad' => $data['edad'],
-                'correo_electronico' => array_key_exists('correo_electronico', $data) ? $data['correo_electronico'] : $paciente->correo_electronico,
-            ]);
+        $atencion = DB::transaction(function () use ($paciente, $user, $data, $emails): Atencion {
+            $paciente = Paciente::query()->lockForUpdate()->findOrFail($paciente->id);
+            $paciente->update(['edad' => $data['edad']]);
+            $emails->apply($paciente, $data);
 
             return $paciente->atenciones()->create([
                 'user_id' => $user->id,
@@ -62,6 +62,6 @@ final class AtencionController extends ApiController
             ]);
         });
 
-        return $this->created(new AtencionResource($atencion->load(['paciente', 'user'])));
+        return $this->created(new AtencionResource($atencion->load(['paciente.correos', 'user'])));
     }
 }

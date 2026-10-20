@@ -6,18 +6,22 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Api\V1\StorePacienteRequest;
+use App\Http\Requests\Api\V1\UpdatePacienteCorreosRequest;
 use App\Http\Resources\PacienteResource;
 use App\Models\Paciente;
+use App\Services\PacienteCorreoService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 final class PacienteController extends ApiController
 {
     public function index(Request $request): JsonResponse
     {
         $search = $request->string('search')->trim()->toString();
-        $pacientes = Paciente::query()
+        $pacientes = Paciente::query()->with('correos')
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $inner) use ($search): void {
                     $inner->where('nombre_completo', 'like', "%{$search}%")
@@ -34,25 +38,53 @@ final class PacienteController extends ApiController
         ]);
     }
 
-    public function store(StorePacienteRequest $request): JsonResponse
+    public function store(StorePacienteRequest $request, PacienteCorreoService $emails): JsonResponse
     {
-        return $this->created(new PacienteResource(Paciente::query()->create($request->validated())));
+        $patient = DB::transaction(function () use ($request, $emails): Paciente {
+            /** @var array<string, mixed> $data */
+            $data = $request->validated();
+            /** @var array<string, mixed> $attributes */
+            $attributes = Arr::except($data, ['correos', 'correo_electronico']);
+            $patient = Paciente::query()->create($attributes);
+
+            return $emails->apply($patient, $data);
+        });
+
+        return $this->created(new PacienteResource($patient));
     }
 
     public function show(Paciente $paciente): JsonResponse
     {
-        return $this->success(new PacienteResource($paciente));
+        return $this->success(new PacienteResource($paciente->load('correos')));
     }
 
     public function porDni(string $dni): JsonResponse
     {
-        return $this->success(new PacienteResource(Paciente::query()->where('dni', $dni)->firstOrFail()));
+        return $this->success(new PacienteResource(Paciente::query()->with('correos')->where('dni', $dni)->firstOrFail()));
     }
 
-    public function update(StorePacienteRequest $request, Paciente $paciente): JsonResponse
+    public function update(StorePacienteRequest $request, Paciente $paciente, PacienteCorreoService $emails): JsonResponse
     {
-        $paciente->update($request->validated());
+        $patient = DB::transaction(function () use ($request, $paciente, $emails): Paciente {
+            $patient = Paciente::query()->lockForUpdate()->findOrFail($paciente->id);
+            /** @var array<string, mixed> $data */
+            $data = $request->validated();
+            /** @var array<string, mixed> $attributes */
+            $attributes = Arr::except($data, ['correos', 'correo_electronico']);
+            $patient->update($attributes);
 
-        return $this->success(new PacienteResource($paciente->refresh()), 'Paciente actualizado');
+            return $emails->apply($patient, $data);
+        });
+
+        return $this->success(new PacienteResource($patient), 'Paciente actualizado');
+    }
+
+    public function updateCorreos(UpdatePacienteCorreosRequest $request, Paciente $paciente, PacienteCorreoService $emails): JsonResponse
+    {
+        /** @var list<array{correo: string, predeterminado: bool}> $rows */
+        $rows = $request->validated('correos');
+        $patient = $emails->sync($paciente, $rows);
+
+        return $this->success(new PacienteResource($patient), 'Correos guardados');
     }
 }

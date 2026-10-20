@@ -4,6 +4,8 @@ import { Button, Dialog, Portal, Text, TextInput } from 'react-native-paper';
 import { api } from '../../lib/api';
 import { COLORS } from '../../theme/colors';
 import { errorMessage, type Patient } from './campania-screen';
+import { PatientEmailEditor } from './patient-email-editor';
+import { emailDrafts, emailError, emailPayload } from './patient-emails';
 
 type PatientCreateDialogProps = {
   visible: boolean;
@@ -16,7 +18,7 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
   const [name, setName] = useState('');
   const [dni, setDni] = useState('');
   const [age, setAge] = useState('');
-  const [email, setEmail] = useState('');
+  const [emails, setEmails] = useState(emailDrafts);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -27,7 +29,7 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
     setName(isDocument ? '' : query);
     setDni(isDocument ? query : '');
     setAge('');
-    setEmail('');
+    setEmails(emailDrafts());
     setError('');
   }, [visible, initialQuery]);
 
@@ -46,8 +48,8 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
       setError('Ingresa una edad válida entre 0 y 120 años.');
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError('Ingresa un correo electrónico válido.');
+    if (emailError(emails)) {
+      setError(emailError(emails));
       return;
     }
 
@@ -58,7 +60,7 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
         nombre_completo: name.trim(),
         dni: dni.trim(),
         edad: Number(age.trim()),
-        correo_electronico: email.trim(),
+        correos: emailPayload(emails),
       });
       onCreated(response.data.data);
     } catch (requestError) {
@@ -77,7 +79,7 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
             <TextInput label="Nombre completo *" mode="outlined" value={name} onChangeText={setName} maxLength={255} disabled={saving} autoCapitalize="words" />
             <TextInput label="DNI *" mode="outlined" value={dni} onChangeText={setDni} maxLength={8} keyboardType="number-pad" disabled={saving} />
             <TextInput label="Edad *" mode="outlined" value={age} onChangeText={setAge} maxLength={3} keyboardType="number-pad" inputMode="numeric" disabled={saving} />
-            <TextInput label="Correo electrónico *" mode="outlined" value={email} onChangeText={setEmail} maxLength={255} keyboardType="email-address" inputMode="email" autoCapitalize="none" autoCorrect={false} disabled={saving} />
+            <PatientEmailEditor value={emails} onChange={setEmails} disabled={saving} />
             {error ? <Text accessibilityLiveRegion="polite" style={styles.error}>{error}</Text> : null}
           </ScrollView>
         </Dialog.ScrollArea>

@@ -39,6 +39,12 @@ final class Paciente extends Model
         return $this->hasMany(Atencion::class);
     }
 
+    /** @return HasMany<PacienteCorreo, $this> */
+    public function correos(): HasMany
+    {
+        return $this->hasMany(PacienteCorreo::class)->orderByDesc('predeterminado')->orderBy('id');
+    }
+
     /** @return array<string, string> */
     protected function casts(): array
     {

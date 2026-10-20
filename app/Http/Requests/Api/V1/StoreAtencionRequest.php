@@ -13,10 +13,11 @@ final class StoreAtencionRequest extends FormRequest
         return $this->user() !== null;
     }
 
-    /** @return array<string, list<string>> */
+    /** @return array<string, list<mixed>> */
     public function rules(): array
     {
         return [
+            ...PacienteCorreoRules::rules(),
             'dni' => ['required', 'string', 'regex:/^[0-9]{8}$/', 'exists:pacientes,dni'],
             'edad' => ['required', 'integer', 'min:0', 'max:120'],
             'correo_electronico' => ['nullable', 'string', 'email', 'max:255'],

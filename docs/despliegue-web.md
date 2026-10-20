@@ -95,3 +95,24 @@ y `/database/database.sqlite` no entreguen archivos. Probar inicio de sesión,
 creación de paciente y registro de atención desde el navegador.
 
 El sitio requiere conexión a Internet. No incluye funcionamiento sin conexión.
+
+## Correos de pacientes
+
+Un paciente puede tener varios correos; cada dirección pertenece a un solo
+paciente y, si tiene correos, uno es predeterminado. El campo original
+`correo_electronico` se conserva como el correo predeterminado para los clientes
+anteriores. La interfaz permite guardar los correos desde Atención sin registrar
+una atención. Se puede crear un paciente sin correo.
+
+Para cruzar un XLSX con columnas `DNI` y `Correo Electrónico`:
+
+```sh
+php artisan pacientes:importar-correos /ruta/Book1.xlsx --simular --reporte=/ruta/privada/vista-previa.json
+php artisan pacientes:importar-correos /ruta/Book1.xlsx --reporte=/ruta/privada/resultado.json
+```
+
+El cruce agrega correos por DNI, respeta el predeterminado existente y puede
+repetirse sin duplicar datos. Omite los correos inválidos, los que figuran en más
+de un DNI y los que ya pertenecen a otro paciente. No crea pacientes sin nombre
+cuando un DNI no existe. Estas incidencias se registran en el reporte privado.
+Los Excel y los reportes deben mantenerse fuera de `public/` y del repositorio.

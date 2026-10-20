@@ -56,6 +56,7 @@ Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function ()
 
     Route::get('pacientes/dni/{dni}', [PacienteController::class, 'porDni'])
         ->where('dni', '[0-9]{8}')->name('api.v1.pacientes.dni');
+    Route::put('pacientes/{paciente}/correos', [PacienteController::class, 'updateCorreos'])->name('api.v1.pacientes.correos');
     Route::apiResource('pacientes', PacienteController::class)
         ->parameters(['pacientes' => 'paciente'])->except('destroy')->names('api.v1.pacientes');
     Route::apiResource('atenciones', AtencionController::class)

@@ -5,6 +5,8 @@ import { api } from '../../lib/api';
 import { COLORS } from '../../theme/colors';
 import { errorMessage, localDate, type Patient } from './campania-screen';
 import { PatientCreateDialog } from './patient-create-dialog';
+import { PatientEmailEditor } from './patient-email-editor';
+import { emailDrafts, emailError, emailPayload } from './patient-emails';
 
 type PatientSearchResponse = {
   data: { items: Patient[]; total: number };
@@ -22,7 +24,8 @@ export function AttentionScreen() {
   const [total, setTotal] = useState(0);
   const [patient, setPatient] = useState<Patient | null>(null);
   const [age, setAge] = useState('');
-  const [email, setEmail] = useState('');
+  const [emails, setEmails] = useState(emailDrafts);
+  const [savingEmails, setSavingEmails] = useState(false);
   const [pressure, setPressure] = useState('');
   const [conditions, setConditions] = useState(noConditions);
   const [others, setOthers] = useState('');
@@ -80,21 +83,40 @@ export function AttentionScreen() {
     setPatient(selected);
     setMatches([]);
     setAge(selected.edad == null ? '' : String(selected.edad));
-    setEmail(String(selected.correo_electronico ?? ''));
+    setEmails(emailDrafts(selected));
     setSaveError('');
     setNotice('');
   }
 
   function clearAttention() {
     setAge('');
-    setEmail('');
+    setEmails(emailDrafts());
     setPressure('');
     setConditions(noConditions);
     setOthers('');
   }
 
+  async function saveEmails() {
+    if (!patient || saving || savingEmails) return;
+    const validation = emailError(emails);
+    if (validation) { setSaveError(validation); return; }
+    setSavingEmails(true);
+    setSaveError('');
+    setNotice('');
+    try {
+      const response = await api.put<{ data: Patient }>(`/pacientes/${patient.id}/correos`, { correos: emailPayload(emails) });
+      setPatient(response.data.data);
+      setEmails(emailDrafts(response.data.data));
+      setNotice('Correos guardados.');
+    } catch (error) {
+      setSaveError(errorMessage(error));
+    } finally {
+      setSavingEmails(false);
+    }
+  }
+
   async function save() {
-    if (saving) return;
+    if (saving || savingEmails) return;
     if (!patient) {
       setSaveError('Selecciona un paciente.');
       return;
@@ -103,8 +125,8 @@ export function AttentionScreen() {
       setSaveError('Ingresa una edad válida entre 0 y 120 años.');
       return;
     }
-    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setSaveError('Ingresa un correo electrónico válido o déjalo vacío.');
+    if (emailError(emails)) {
+      setSaveError(emailError(emails));
       return;
     }
     if (!pressure.trim()) {
@@ -119,7 +141,7 @@ export function AttentionScreen() {
       await api.post('/atenciones', {
         dni: patient.dni,
         edad: Number(age.trim()),
-        correo_electronico: email.trim() || null,
+        correos: emailPayload(emails),
         valor_1: pressure.trim(),
         ...conditions,
         otros: others.trim() || null,
@@ -148,7 +170,7 @@ export function AttentionScreen() {
           label="Buscar paciente por nombre o DNI"
           value={query}
           onChangeText={changeQuery}
-          disabled={saving || createVisible}
+          disabled={saving || savingEmails || createVisible}
           autoCapitalize="none"
           right={<TextInput.Icon icon="magnify" />}
         />
@@ -182,20 +204,11 @@ export function AttentionScreen() {
             <Text variant="titleMedium">{patient.nombre_completo}</Text>
             <Text>DNI: {patient.dni}</Text>
             {patient.nombre_area ? <Text>{patient.nombre_area}</Text> : null}
-            <TextInput
-              mode="outlined"
-              label="Correo electrónico"
-              value={email}
-              onChangeText={value => { setEmail(value); setSaveError(''); }}
-              placeholder="Sin correo registrado"
-              maxLength={255}
-              keyboardType="email-address"
-              inputMode="email"
-              autoCapitalize="none"
-              autoCorrect={false}
-              disabled={saving}
-            />
-            <Button disabled={saving} onPress={() => { changeQuery(''); clearAttention(); }}>Cambiar paciente</Button>
+            <PatientEmailEditor value={emails} onChange={value => { setEmails(value); setSaveError(''); }} disabled={saving || savingEmails} />
+            <Button icon="content-save-outline" mode="outlined" loading={savingEmails} disabled={saving || savingEmails} onPress={() => void saveEmails()}>
+              Guardar correos
+            </Button>
+            <Button disabled={saving || savingEmails} onPress={() => { changeQuery(''); clearAttention(); }}>Cambiar paciente</Button>
           </View>
         ) : null}
         <TextInput
@@ -215,8 +228,6 @@ export function AttentionScreen() {
           value={pressure}
           onChangeText={value => { setPressure(value); setSaveError(''); }}
           placeholder="Ej. 120/80"
-          multiline
-          numberOfLines={4}
           maxLength={255}
           disabled={saving || !patient}
         />
@@ -248,7 +259,7 @@ export function AttentionScreen() {
           disabled={saving || !patient}
         />
         {saveError ? <Text accessibilityLiveRegion="polite" style={styles.error}>{saveError}</Text> : null}
-        <Button mode="contained" icon="content-save-outline" loading={saving} disabled={saving || !patient || !age.trim() || !pressure.trim()} onPress={() => void save()}>
+        <Button mode="contained" icon="content-save-outline" loading={saving} disabled={saving || savingEmails || !patient || !age.trim() || !pressure.trim()} onPress={() => void save()}>
           Guardar atención
         </Button>
       </View>

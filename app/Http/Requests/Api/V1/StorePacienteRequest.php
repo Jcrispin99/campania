@@ -14,10 +14,11 @@ final class StorePacienteRequest extends FormRequest
         return $this->user() !== null;
     }
 
-    /** @return array<string, array<mixed>> */
+    /** @return array<string, list<mixed>> */
     public function rules(): array
     {
         return [
+            ...PacienteCorreoRules::rules(),
             'edad' => ['nullable', 'integer', 'min:0', 'max:120'],
             'numero' => ['nullable', 'integer', 'min:1', 'max:4294967295'],
             'nombre_completo' => ['required', 'string', 'max:255'],
@@ -26,7 +27,7 @@ final class StorePacienteRequest extends FormRequest
             'nombre_area' => ['nullable', 'string', 'max:255'],
             'nombre_unidad_org' => ['nullable', 'string', 'max:255'],
             'telefono' => ['nullable', 'string', 'max:30'],
-            'correo_electronico' => ['nullable', 'string', 'max:255'],
+            'correo_electronico' => ['nullable', 'string', 'email', 'max:254'],
             'asistencia' => ['nullable', 'string', 'max:255'],
             'presion_arterial' => ['nullable', 'string', 'max:255'],
             'fecha' => ['nullable', 'date_format:Y-m-d'],

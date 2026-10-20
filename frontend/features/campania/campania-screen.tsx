@@ -6,6 +6,8 @@ import { DataTable, type DataTableColumn } from '../../components/data/data-tabl
 import { ListPagination } from '../../components/data/list-pagination';
 import { api } from '../../lib/api';
 import { localDate } from '../../lib/date';
+import { PatientEmailEditor } from './patient-email-editor';
+import { emailDrafts, emailError, emailPayload, type PatientEmail } from './patient-emails';
 
 export { localDate };
 
@@ -17,7 +19,7 @@ const fields = [
   ['presion_arterial', 'Presión arterial'], ['fecha', 'Fecha'],
 ] as const;
 type Field = typeof fields[number][0];
-export type Patient = { id: number; edad?: number | null } & Record<Field, string | number | null>;
+export type Patient = { id: number; edad?: number | null; correos?: PatientEmail[] } & Record<Field, string | number | null>;
 type Attention = { id: number; paciente: Patient; valor_1: string; fecha: string; registrado_por: string };
 type Page<T> = { items: T[]; current_page: number; last_page: number; total: number };
 const emptyPage = { items: [], current_page: 1, last_page: 1, total: 0 };
@@ -46,6 +48,7 @@ export function CampaniaScreen({ section }: { section: 'pacientes' | 'atenciones
   const [notice, setNotice] = useState('');
   const [dialog, setDialog] = useState<'paciente' | 'atencion' | null>(null);
   const [editing, setEditing] = useState<number | null>(null);
+  const [emails, setEmails] = useState(emailDrafts);
   const [form, setForm] = useState<Record<Field, string>>(emptyPatient);
   const [dni, setDni] = useState('');
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -73,6 +76,7 @@ export function CampaniaScreen({ section }: { section: 'pacientes' | 'atenciones
 
   function openPatient(item?: Patient) {
     setForm(item ? Object.fromEntries(fields.map(([key]) => [key, String(item[key] ?? '')])) as Record<Field, string> : { ...emptyPatient });
+    setEmails(emailDrafts(item));
     setEditing(item?.id ?? null);
     setFormError('');
     setDialog('paciente');
@@ -98,7 +102,8 @@ export function CampaniaScreen({ section }: { section: 'pacientes' | 'atenciones
     setFormError(''); setSaving(true);
     try {
       if (dialog === 'paciente') {
-        const payload = Object.fromEntries(fields.map(([key]) => [key, key === 'numero' ? (form[key] ? Number(form[key]) : null) : form[key].trim() || null]));
+        if (emailError(emails)) { setFormError(emailError(emails)); return; }
+        const payload = { ...Object.fromEntries(fields.filter(([key]) => key !== 'correo_electronico').map(([key]) => [key, key === 'numero' ? (form[key] ? Number(form[key]) : null) : form[key].trim() || null])), correos: emailPayload(emails) };
         if (editing) await api.put(`/pacientes/${editing}`, payload);
         else await api.post('/pacientes', payload);
       } else {
@@ -149,7 +154,7 @@ export function CampaniaScreen({ section }: { section: 'pacientes' | 'atenciones
     <Portal><Dialog visible={dialog !== null} onDismiss={() => { if (!saving && !lookingUp) setDialog(null); }} style={styles.dialog}>
       <Dialog.Title>{dialog === 'paciente' ? (editing ? 'Editar paciente' : 'Nuevo paciente') : 'Registrar atención'}</Dialog.Title>
       <Dialog.ScrollArea><ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-        {dialog === 'paciente' ? fields.map(([key, title]) => <TextInput key={key} mode="outlined" label={`${title}${key === 'nombre_completo' || key === 'dni' ? ' *' : key === 'fecha' ? ' (AAAA-MM-DD)' : ''}`} value={form[key]} onChangeText={value => setForm(current => ({ ...current, [key]: value }))} keyboardType={key === 'dni' || key === 'numero' ? 'number-pad' : key === 'correo_electronico' ? 'email-address' : 'default'} maxLength={key === 'dni' ? 8 : 255} autoCapitalize={key === 'correo_electronico' ? 'none' : 'sentences'} disabled={saving} />) : <>
+        {dialog === 'paciente' ? <>{fields.filter(([key]) => key !== 'correo_electronico').map(([key, title]) => <TextInput key={key} mode="outlined" label={`${title}${key === 'nombre_completo' || key === 'dni' ? ' *' : key === 'fecha' ? ' (AAAA-MM-DD)' : ''}`} value={form[key]} onChangeText={value => setForm(current => ({ ...current, [key]: value }))} keyboardType={key === 'dni' || key === 'numero' ? 'number-pad' : key === 'correo_electronico' ? 'email-address' : 'default'} maxLength={key === 'dni' ? 8 : 255} autoCapitalize={key === 'correo_electronico' ? 'none' : 'sentences'} disabled={saving} />)}<PatientEmailEditor value={emails} onChange={setEmails} disabled={saving} /></> : <>
           <TextInput mode="outlined" label="DNI del paciente" value={dni} onChangeText={value => { setDni(value); setPatient(null); }} keyboardType="number-pad" maxLength={8} disabled={lookingUp || saving} />
           <Button mode="outlined" loading={lookingUp} disabled={lookingUp || saving} onPress={() => void lookup()}>Buscar paciente</Button>
           {patient ? <View style={styles.patient}><Text variant="titleMedium">{patient.nombre_completo}</Text><Text>{patient.nombre_area ?? 'Sin área registrada'}</Text><Text>DNI: {patient.dni}</Text></View> : null}
