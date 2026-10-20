@@ -11,27 +11,41 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('cash_registers', function (Blueprint $table): void {
-            $table->id();
-            $table->foreignId('store_id')->constrained('stores')->restrictOnDelete();
-            $table->foreignId('warehouse_id')->constrained('warehouses')->restrictOnDelete();
-            $table->foreignId('default_sales_series_id')->nullable()->constrained('document_series')->restrictOnDelete();
-            $table->string('code', 50);
-            $table->string('name');
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+        // MySQL commits DDL immediately, so a failed index creation can leave
+        // both tables in place when this pending migration is retried.
+        if (! Schema::hasTable('cash_registers')) {
+            Schema::create('cash_registers', function (Blueprint $table): void {
+                $table->id();
+                $table->foreignId('store_id')->constrained('stores')->restrictOnDelete();
+                $table->foreignId('warehouse_id')->constrained('warehouses')->restrictOnDelete();
+                $table->foreignId('default_sales_series_id')->nullable()->constrained('document_series')->restrictOnDelete();
+                $table->string('code', 50);
+                $table->string('name');
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
 
-            $table->unique(['store_id', 'code']);
-        });
+                $table->unique(['store_id', 'code']);
+            });
+        }
 
-        Schema::create('cash_register_document_series', function (Blueprint $table): void {
-            $table->foreignId('cash_register_id')->constrained('cash_registers')->cascadeOnDelete();
-            $table->foreignId('document_series_id')->constrained('document_series')->restrictOnDelete();
-            $table->timestamps();
+        if (! Schema::hasTable('cash_register_document_series')) {
+            Schema::create('cash_register_document_series', function (Blueprint $table): void {
+                $table->foreignId('cash_register_id')->constrained('cash_registers')->cascadeOnDelete();
+                $table->foreignId('document_series_id')->constrained('document_series')->restrictOnDelete();
+                $table->timestamps();
+            });
+        }
 
-            $table->unique(['cash_register_id', 'document_series_id']);
-            $table->unique('document_series_id');
-        });
+        if (! Schema::hasIndex('cash_register_document_series', ['cash_register_id', 'document_series_id'], 'unique')) {
+            Schema::table('cash_register_document_series', function (Blueprint $table): void {
+                $table->unique(['cash_register_id', 'document_series_id'], 'cash_register_series_unique');
+            });
+        }
+        if (! Schema::hasIndex('cash_register_document_series', ['document_series_id'], 'unique')) {
+            Schema::table('cash_register_document_series', function (Blueprint $table): void {
+                $table->unique('document_series_id');
+            });
+        }
 
         $storeId = DB::table('stores')->where('code', 'PRINCIPAL')->where('is_active', true)->value('id')
             ?? DB::table('stores')->where('is_active', true)->orderBy('id')->value('id');

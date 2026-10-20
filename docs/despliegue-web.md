@@ -6,7 +6,7 @@ Expo ni una compilación Android en producción.
 
 ## Requisitos
 
-- PHP 8.4 con las extensiones exigidas por Composer, SQLite y ZIP.
+- PHP 8.4 con las extensiones exigidas por Composer, PDO MySQL y ZIP.
 - Composer 2 y Node 22.13 o superior con npm.
 - HTTPS y raíz del sitio en
   `/home/ikoodev-campania/htdocs/campania.ikoodev.com/public`.
@@ -18,7 +18,7 @@ Desde la carpeta del proyecto, instalar dependencias:
 
 ```sh
 composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-cp .env.example .env
+test -f .env || cp .env.example .env
 ```
 
 Configurar `.env` antes de continuar:
@@ -31,20 +31,24 @@ APP_URL=https://campania.ikoodev.com
 APP_LOCALE=es
 APP_FALLBACK_LOCALE=en
 LOG_LEVEL=warning
-DB_CONNECTION=sqlite
-DB_DATABASE=/home/ikoodev-campania/htdocs/campania.ikoodev.com/database/database.sqlite
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=campania
+# Conservar DB_USERNAME y DB_PASSWORD configurados en el VPS.
 SESSION_SECURE_COOKIE=true
 CAMPANIA_PUBLIC_REGISTRATION=false
 ```
 
-SQLite permite iniciar sin configurar otro servicio de base de datos.
-El archivo debe estar fuera de `public/`, con permisos para el usuario del sitio.
-También se puede configurar MySQL usando las variables `DB_*` de Laravel.
+El VPS utiliza MySQL. Conservar sus credenciales al configurar producción.
+SQLite también es compatible si se configura explícitamente un archivo fuera
+de `public/`, con permisos para el usuario del sitio.
 
 ```sh
-touch database/database.sqlite
 chmod 600 .env
 chmod -R u+rwX storage bootstrap/cache
+
+# Solo en la primera instalación, si APP_KEY está vacío:
 php artisan key:generate --force
 php artisan migrate --force
 cd frontend
@@ -59,7 +63,7 @@ El último comando solicita una contraseña oculta de al menos 12 caracteres.
 El registro público está deshabilitado en producción; las cuentas se crean
 desde el comando o el módulo Usuarios después de iniciar sesión.
 No ejecutar los seeders generales: incluyen cuentas y operaciones de ejemplo.
-Configurar una copia diaria de SQLite mediante su API de backup y conservarla
+Configurar una copia diaria de MySQL con mysqldump y conservarla
 fuera del directorio público. Respaldar también `.env` y `storage/app`.
 
 ## Actualizaciones
