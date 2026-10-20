@@ -19,6 +19,10 @@ final class AtencionResource extends JsonResource
             'paciente_id' => $this->paciente_id,
             'paciente' => new PacienteResource($this->whenLoaded('paciente')),
             'valor_1' => $this->valor_1,
+            'diabetes' => $this->diabetes,
+            'hipertension' => $this->hipertension,
+            'ayuna' => $this->ayuna,
+            'otros' => $this->otros,
             'fecha' => $this->fecha->format('Y-m-d'),
             'registrado_por' => $this->whenLoaded('user', fn (): string => $this->user->name),
         ];

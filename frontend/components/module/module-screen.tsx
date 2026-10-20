@@ -12,6 +12,7 @@ import { SupplierList } from '../../features/purchases/supplier-list';
 import { CashRegisterList } from '../../features/pos/cash-register-list';
 import { DocumentSeriesList } from '../../features/pos/document-series-list';
 import { PosPaymentMethodList } from '../../features/pos/pos-payment-method-list';
+import { AttentionHistory } from '../../features/campania/attention-history';
 import { AttentionScreen } from '../../features/campania/attention-screen';
 import { CampaniaScreen } from '../../features/campania/campania-screen';
 import { ModuleLayout } from './module-layout';
@@ -41,7 +42,9 @@ export function ModuleScreen() {
 
   return (
     <ModuleLayout module={module} selectedItemId={selectedItem.id}>
-      {module.id === 'atenciones' ? (
+      {module.id === 'atenciones' && selectedItem.id === 'historial' ? (
+        <AttentionHistory />
+      ) : module.id === 'atenciones' ? (
         <AttentionScreen />
       ) : module.id === 'campania' ? (
         <CampaniaScreen section="pacientes" />

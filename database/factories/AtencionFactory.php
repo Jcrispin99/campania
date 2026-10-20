@@ -19,6 +19,10 @@ final class AtencionFactory extends Factory
             'paciente_id' => Paciente::factory(),
             'user_id' => User::factory(),
             'valor_1' => '120/80',
+            'diabetes' => false,
+            'hipertension' => false,
+            'ayuna' => false,
+            'otros' => null,
             'fecha' => fake()->date(),
         ];
     }

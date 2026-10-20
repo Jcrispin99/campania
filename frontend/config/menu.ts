@@ -44,6 +44,7 @@ export const MENU_MODULES: MenuModule[] = [
     icon: 'clipboard-pulse-outline', color: '#2563EB', softColor: '#DBEAFE', order: 2,
     items: [
       { id: 'atenciones', title: 'Atención', description: 'Seleccionar paciente y guardar resultado', icon: 'clipboard-pulse-outline', group: 'Atención' },
+      { id: 'historial', title: 'Historial', description: 'Todas las atenciones registradas', icon: 'history', group: 'Atención' },
     ],
   },
   {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Button, List, Text, TextInput } from 'react-native-paper';
+import { ActivityIndicator, Button, Checkbox, List, Text, TextInput } from 'react-native-paper';
 import { api } from '../../lib/api';
 import { COLORS } from '../../theme/colors';
 import { errorMessage, localDate, type Patient } from './campania-screen';
@@ -10,12 +10,22 @@ type PatientSearchResponse = {
   data: { items: Patient[]; total: number };
 };
 
+const conditionOptions = [
+  ['diabetes', 'Diabetes'], ['hipertension', 'Hipertensión'], ['ayuna', 'Ayuna'],
+] as const;
+type Condition = typeof conditionOptions[number][0];
+const noConditions: Record<Condition, boolean> = { diabetes: false, hipertension: false, ayuna: false };
+
 export function AttentionScreen() {
   const [query, setQuery] = useState('');
   const [matches, setMatches] = useState<Patient[]>([]);
   const [total, setTotal] = useState(0);
   const [patient, setPatient] = useState<Patient | null>(null);
-  const [result, setResult] = useState('');
+  const [age, setAge] = useState('');
+  const [email, setEmail] = useState('');
+  const [pressure, setPressure] = useState('');
+  const [conditions, setConditions] = useState(noConditions);
+  const [others, setOthers] = useState('');
   const [searching, setSearching] = useState(false);
   const [saving, setSaving] = useState(false);
   const [searchError, setSearchError] = useState('');
@@ -69,8 +79,18 @@ export function AttentionScreen() {
   function selectPatient(selected: Patient) {
     setPatient(selected);
     setMatches([]);
+    setAge(selected.edad == null ? '' : String(selected.edad));
+    setEmail(String(selected.correo_electronico ?? ''));
     setSaveError('');
     setNotice('');
+  }
+
+  function clearAttention() {
+    setAge('');
+    setEmail('');
+    setPressure('');
+    setConditions(noConditions);
+    setOthers('');
   }
 
   async function save() {
@@ -79,8 +99,16 @@ export function AttentionScreen() {
       setSaveError('Selecciona un paciente.');
       return;
     }
-    if (!result.trim()) {
-      setSaveError('Ingresa el resultado.');
+    if (!/^\d{1,3}$/.test(age.trim()) || Number(age) > 120) {
+      setSaveError('Ingresa una edad válida entre 0 y 120 años.');
+      return;
+    }
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setSaveError('Ingresa un correo electrónico válido o déjalo vacío.');
+      return;
+    }
+    if (!pressure.trim()) {
+      setSaveError('Ingresa la presión arterial.');
       return;
     }
 
@@ -90,11 +118,15 @@ export function AttentionScreen() {
     try {
       await api.post('/atenciones', {
         dni: patient.dni,
-        valor_1: result.trim(),
+        edad: Number(age.trim()),
+        correo_electronico: email.trim() || null,
+        valor_1: pressure.trim(),
+        ...conditions,
+        otros: others.trim() || null,
         fecha: localDate(),
       });
       setNotice(`Atención guardada para ${patient.nombre_completo}.`);
-      setResult('');
+      clearAttention();
       setQuery('');
       setPatient(null);
     } catch (error) {
@@ -108,7 +140,7 @@ export function AttentionScreen() {
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.container}>
       <View style={styles.form}>
         <Text variant="headlineSmall">Atención</Text>
-        <Text style={styles.help}>Selecciona al paciente, ingresa su resultado y guarda la atención.</Text>
+        <Text style={styles.help}>Selecciona al paciente, completa sus datos y guarda la atención.</Text>
         {notice ? <Text accessibilityLiveRegion="polite" style={styles.success}>{notice}</Text> : null}
 
         <TextInput
@@ -150,22 +182,73 @@ export function AttentionScreen() {
             <Text variant="titleMedium">{patient.nombre_completo}</Text>
             <Text>DNI: {patient.dni}</Text>
             {patient.nombre_area ? <Text>{patient.nombre_area}</Text> : null}
-            <Button disabled={saving} onPress={() => { changeQuery(''); setResult(''); }}>Cambiar paciente</Button>
+            <TextInput
+              mode="outlined"
+              label="Correo electrónico"
+              value={email}
+              onChangeText={value => { setEmail(value); setSaveError(''); }}
+              placeholder="Sin correo registrado"
+              maxLength={255}
+              keyboardType="email-address"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect={false}
+              disabled={saving}
+            />
+            <Button disabled={saving} onPress={() => { changeQuery(''); clearAttention(); }}>Cambiar paciente</Button>
           </View>
         ) : null}
         <TextInput
           mode="outlined"
-          label="Resultado"
-          value={result}
-          onChangeText={value => { setResult(value); setSaveError(''); }}
-          placeholder="Escribe el resultado del paciente"
+          label="Edad *"
+          value={age}
+          onChangeText={value => { setAge(value); setSaveError(''); }}
+          placeholder="Años"
+          maxLength={3}
+          keyboardType="number-pad"
+          inputMode="numeric"
+          disabled={saving || !patient}
+        />
+        <TextInput
+          mode="outlined"
+          label="Presión arterial *"
+          value={pressure}
+          onChangeText={value => { setPressure(value); setSaveError(''); }}
+          placeholder="Ej. 120/80"
           multiline
           numberOfLines={4}
           maxLength={255}
           disabled={saving || !patient}
         />
+        <View style={styles.conditions}>
+          <Text variant="titleSmall">El paciente:</Text>
+          {conditionOptions.map(([key, label]) => (
+            <Checkbox.Item
+              key={key}
+              label={label}
+              mode="android"
+              position="leading"
+              status={conditions[key] ? 'checked' : 'unchecked'}
+              onPress={() => setConditions(current => ({ ...current, [key]: !current[key] }))}
+              disabled={saving || !patient}
+              style={styles.condition}
+              labelStyle={styles.conditionLabel}
+            />
+          ))}
+        </View>
+        <TextInput
+          mode="outlined"
+          label="Otros"
+          value={others}
+          onChangeText={setOthers}
+          placeholder="Otras enfermedades, medicamentos u observaciones"
+          multiline
+          numberOfLines={3}
+          maxLength={1000}
+          disabled={saving || !patient}
+        />
         {saveError ? <Text accessibilityLiveRegion="polite" style={styles.error}>{saveError}</Text> : null}
-        <Button mode="contained" icon="content-save-outline" loading={saving} disabled={saving || !patient || !result.trim()} onPress={() => void save()}>
+        <Button mode="contained" icon="content-save-outline" loading={saving} disabled={saving || !patient || !age.trim() || !pressure.trim()} onPress={() => void save()}>
           Guardar atención
         </Button>
       </View>
@@ -177,7 +260,7 @@ export function AttentionScreen() {
           selectPatient(created);
           setCreateVisible(false);
           setQuery(String(created.nombre_completo));
-          setNotice('Paciente creado. Ya puedes ingresar su resultado.');
+          setNotice('Paciente creado. Ya puedes registrar su atención.');
         }}
       />
     </ScrollView>
@@ -192,6 +275,9 @@ const styles = StyleSheet.create({
   empty: { padding: 16, color: COLORS.textMuted },
   emptyState: { padding: 16, gap: 12, alignItems: 'flex-start' },
   selected: { padding: 18, gap: 8, borderRadius: 8, backgroundColor: COLORS.secondaryContainer },
+  conditions: { paddingVertical: 12, paddingHorizontal: 16, gap: 4, borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, backgroundColor: COLORS.surface },
+  condition: { paddingHorizontal: 0, paddingVertical: 2 },
+  conditionLabel: { textAlign: 'left' },
   error: { padding: 12, color: COLORS.error, backgroundColor: COLORS.errorContainer, borderRadius: 8 },
   success: { padding: 12, color: COLORS.success, backgroundColor: COLORS.successContainer, borderRadius: 8 },
 });
