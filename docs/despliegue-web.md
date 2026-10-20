@@ -28,6 +28,7 @@ APP_NAME=Campania
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://campania.ikoodev.com
+APP_TIMEZONE=America/Lima
 APP_LOCALE=es
 APP_FALLBACK_LOCALE=en
 LOG_LEVEL=warning

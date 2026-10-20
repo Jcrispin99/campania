@@ -5,6 +5,9 @@ import { Button, Dialog, Portal, Text, TextInput } from 'react-native-paper';
 import { DataTable, type DataTableColumn } from '../../components/data/data-table';
 import { ListPagination } from '../../components/data/list-pagination';
 import { api } from '../../lib/api';
+import { localDate } from '../../lib/date';
+
+export { localDate };
 
 const fields = [
   ['numero', 'N°'], ['nombre_completo', 'Nombre completo'], ['dni', 'Nº de documento'],
@@ -29,11 +32,6 @@ export function errorMessage(error: unknown): string {
     return typeof first === 'string' ? first : error.response?.data?.message ?? 'No se pudo completar la operación.';
   }
   return 'No se pudo completar la operación.';
-}
-
-export function localDate() {
-  const date = new Date();
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 export function CampaniaScreen({ section }: { section: 'pacientes' | 'atenciones' }) {
