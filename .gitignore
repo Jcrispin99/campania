@@ -32,3 +32,8 @@ CLAUDE.md
 
 # SQLite databases
 database/*.sqlite
+
+# Compiled Expo web output
+/public/app.html
+/public/_expo/
+/public/assets/

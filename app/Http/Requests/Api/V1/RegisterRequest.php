@@ -16,7 +16,7 @@ final class RegisterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return (bool) config('campania.public_registration');
     }
 
     /**
