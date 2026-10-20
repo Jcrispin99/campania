@@ -44,7 +44,7 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
       return;
     }
 
-    if (!/^\d{1,3}$/.test(age.trim()) || Number(age) > 120) {
+    if (age.trim() && (!/^\d{1,3}$/.test(age.trim()) || Number(age) > 120)) {
       setError('Ingresa una edad válida entre 0 y 120 años.');
       return;
     }
@@ -59,7 +59,7 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
       const response = await api.post<{ data: Patient }>('/pacientes', {
         nombre_completo: name.trim(),
         dni: dni.trim(),
-        edad: Number(age.trim()),
+        edad: age.trim() ? Number(age.trim()) : null,
         correos: emailPayload(emails),
       });
       onCreated(response.data.data);
@@ -78,7 +78,7 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
           <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
             <TextInput label="Nombre completo *" mode="outlined" value={name} onChangeText={setName} maxLength={255} disabled={saving} autoCapitalize="words" />
             <TextInput label="DNI *" mode="outlined" value={dni} onChangeText={setDni} maxLength={8} keyboardType="number-pad" disabled={saving} />
-            <TextInput label="Edad *" mode="outlined" value={age} onChangeText={setAge} maxLength={3} keyboardType="number-pad" inputMode="numeric" disabled={saving} />
+            <TextInput label="Edad (opcional)" mode="outlined" value={age} onChangeText={setAge} maxLength={3} keyboardType="number-pad" inputMode="numeric" disabled={saving} />
             <PatientEmailEditor value={emails} onChange={setEmails} disabled={saving} />
             {error ? <Text accessibilityLiveRegion="polite" style={styles.error}>{error}</Text> : null}
           </ScrollView>

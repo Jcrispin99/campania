@@ -9,6 +9,7 @@ use App\Http\Requests\Api\V1\StoreAtencionRequest;
 use App\Http\Resources\AtencionResource;
 use App\Models\Atencion;
 use App\Models\Paciente;
+use App\Models\User;
 use App\Services\PacienteCorreoService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -44,16 +45,18 @@ final class AtencionController extends ApiController
     {
         $data = $request->validated();
         $paciente = Paciente::query()->where('dni', $data['dni'])->firstOrFail();
-        $user = $request->user();
-        abort_if($user === null, 401);
+        /** @var User|null $user */
+        $user = $request->user('sanctum');
         $atencion = DB::transaction(function () use ($paciente, $user, $data, $emails): Atencion {
             $paciente = Paciente::query()->lockForUpdate()->findOrFail($paciente->id);
-            $paciente->update(['edad' => $data['edad']]);
+            if (isset($data['edad'])) {
+                $paciente->update(['edad' => $data['edad']]);
+            }
             $emails->apply($paciente, $data);
 
             return $paciente->atenciones()->create([
-                'user_id' => $user->id,
-                'valor_1' => $data['valor_1'],
+                'user_id' => $user?->id,
+                'valor_1' => $data['valor_1'] ?? null,
                 'diabetes' => $data['diabetes'] ?? false,
                 'hipertension' => $data['hipertension'] ?? false,
                 'ayuna' => $data['ayuna'] ?? false,

@@ -9,9 +9,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('requires authentication for attention endpoints', function (): void {
-    $this->getJson('/api/v1/atenciones')->assertUnauthorized();
-    $this->postJson('/api/v1/atenciones', [])->assertUnauthorized();
+it('allows attention endpoints without a login', function (): void {
+    $this->getJson('/api/v1/atenciones')->assertOk();
+    $this->postJson('/api/v1/atenciones', [])->assertUnprocessable();
 });
 
 it('registers multiple measurements by DNI and uses the authenticated operator', function (): void {
@@ -52,7 +52,7 @@ it('rejects non textual or missing measurements and invalid dates', function ():
     ])->assertUnprocessable()->assertJsonValidationErrors(['valor_1', 'fecha'])
         ->assertJsonPath('errors.valor_1.0', 'La presión arterial debe ser un texto.');
     $this->postJson('/api/v1/atenciones', [])->assertUnprocessable()
-        ->assertJsonValidationErrors(['dni', 'edad', 'valor_1', 'fecha']);
+        ->assertJsonValidationErrors(['dni', 'fecha']);
     $this->assertDatabaseCount('atenciones', 0);
 });
 

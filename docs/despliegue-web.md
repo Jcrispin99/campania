@@ -1,6 +1,9 @@
 # Despliegue web en CloudPanel
 
 El sitio sirve Expo Web y Laravel desde `https://campania.ikoodev.com`.
+La campaña abre sin inicio de sesión. Pacientes, correos, Atención e Historial
+funcionan sin credenciales; las atenciones nuevas pueden no tener usuario.
+Edad y presión arterial son opcionales en la toma de muestra.
 La interfaz utiliza `/api/v1` en el mismo dominio. No se necesita un proceso
 Expo ni una compilación Android en producción.
 
@@ -57,12 +60,11 @@ npm ci
 npm run build:web
 cd ..
 php artisan optimize
-php artisan campania:crear-usuario tu-correo@example.com
 ```
 
-El último comando solicita una contraseña oculta de al menos 12 caracteres.
-El registro público está deshabilitado en producción; las cuentas se crean
-desde el comando o el módulo Usuarios después de iniciar sesión.
+El flujo de campaña no necesita cuentas. El módulo Usuarios no aparece en el
+menú; los endpoints heredados de administración de cuentas mantienen su acceso
+autenticado. El registro público de cuentas continúa deshabilitado en producción.
 No ejecutar los seeders generales: incluyen cuentas y operaciones de ejemplo.
 Configurar una copia diaria de MySQL con mysqldump y conservarla
 fuera del directorio público. Respaldar también `.env` y `storage/app`.
@@ -90,9 +92,9 @@ estáticos conservan sus respuestas propias.
 ## Verificación
 
 Comprobar `/`, `/login`, `/module/atenciones`, `/up` y que
-`/api/v1/pacientes` responda 401 sin sesión. Verificar también que `/.env`
-y `/database/database.sqlite` no entreguen archivos. Probar inicio de sesión,
-creación de paciente y registro de atención desde el navegador.
+`/api/v1/pacientes` responda 200 sin sesión. Verificar también que `/.env`
+y `/database/database.sqlite` no entreguen archivos. Probar la entrada directa sin credenciales,
+creación de paciente y registro de atención sin edad ni presión arterial.
 
 El sitio requiere conexión a Internet. No incluye funcionamiento sin conexión.
 

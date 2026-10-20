@@ -20,7 +20,7 @@ const fields = [
 ] as const;
 type Field = typeof fields[number][0];
 export type Patient = { id: number; edad?: number | null; correos?: PatientEmail[] } & Record<Field, string | number | null>;
-type Attention = { id: number; paciente: Patient; valor_1: string; fecha: string; registrado_por: string };
+type Attention = { id: number; paciente: Patient; valor_1: string | null; fecha: string; registrado_por: string | null };
 type Page<T> = { items: T[]; current_page: number; last_page: number; total: number };
 const emptyPage = { items: [], current_page: 1, last_page: 1, total: 0 };
 const emptyPatient = Object.fromEntries(fields.map(([key]) => [key, ''])) as Record<Field, string>;
@@ -108,7 +108,7 @@ export function CampaniaScreen({ section }: { section: 'pacientes' | 'atenciones
         else await api.post('/pacientes', payload);
       } else {
         if (!patient || patient.dni !== dni) { setFormError('Busca y confirma primero el paciente por DNI.'); return; }
-        await api.post('/atenciones', { dni, valor_1: measurement.trim(), fecha: date.trim() });
+        await api.post('/atenciones', { dni, valor_1: measurement.trim() || null, fecha: date.trim() });
       }
       setDialog(null); setNotice(dialog === 'paciente' ? 'Paciente guardado.' : 'Atención registrada.'); refresh();
     } catch (error) { setFormError(errorMessage(error)); }
@@ -123,8 +123,8 @@ export function CampaniaScreen({ section }: { section: 'pacientes' | 'atenciones
     { key: 'fecha', title: 'Fecha', style: { width: 120 }, renderCell: item => <Text>{item.fecha}</Text> },
     { key: 'dni', title: 'DNI', style: { width: 110 }, renderCell: item => <Text>{item.paciente.dni}</Text> },
     { key: 'nombre', title: 'Paciente', style: { width: 280 }, renderCell: item => <Text>{item.paciente.nombre_completo}</Text> },
-    { key: 'valor', title: 'Medición', style: { width: 200 }, renderCell: item => <Text>{item.valor_1}</Text> },
-    { key: 'usuario', title: 'Registrado por', style: { width: 200 }, renderCell: item => <Text>{item.registrado_por}</Text> },
+    { key: 'valor', title: 'Medición', style: { width: 200 }, renderCell: item => <Text>{item.valor_1 ?? '—'}</Text> },
+    { key: 'usuario', title: 'Registrado por', style: { width: 200 }, renderCell: item => <Text>{item.registrado_por ?? '—'}</Text> },
   ];
   const current = section === 'pacientes' ? patients : attentions;
 
@@ -158,7 +158,7 @@ export function CampaniaScreen({ section }: { section: 'pacientes' | 'atenciones
           <TextInput mode="outlined" label="DNI del paciente" value={dni} onChangeText={value => { setDni(value); setPatient(null); }} keyboardType="number-pad" maxLength={8} disabled={lookingUp || saving} />
           <Button mode="outlined" loading={lookingUp} disabled={lookingUp || saving} onPress={() => void lookup()}>Buscar paciente</Button>
           {patient ? <View style={styles.patient}><Text variant="titleMedium">{patient.nombre_completo}</Text><Text>{patient.nombre_area ?? 'Sin área registrada'}</Text><Text>DNI: {patient.dni}</Text></View> : null}
-          <TextInput mode="outlined" label="Medición (valor 1)" placeholder="Ej. 120/80" value={measurement} onChangeText={setMeasurement} maxLength={255} disabled={saving} />
+          <TextInput mode="outlined" label="Presión arterial (opcional)" placeholder="Ej. 120/80" value={measurement} onChangeText={setMeasurement} maxLength={255} disabled={saving} />
           <TextInput mode="outlined" label="Fecha (AAAA-MM-DD)" value={date} onChangeText={setDate} disabled={saving} />
         </>}
         {formError ? <Text accessibilityLiveRegion="polite" style={styles.error}>{formError}</Text> : null}

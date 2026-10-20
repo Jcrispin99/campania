@@ -13,7 +13,7 @@ type ModuleDrawerProps = {
   onApplicationsPress: () => void;
   onClose: () => void;
   onItemPress: (item: MenuItem) => void;
-  onLogoutPress: () => void;
+  onLogoutPress?: () => void;
 };
 
 export function ModuleDrawer({
@@ -86,6 +86,7 @@ export function ModuleDrawer({
             ))}
           </ScrollView>
 
+          {user ? <>
           <View style={styles.userDivider} />
           <View style={styles.userRow}>
             <View style={styles.avatar}>
@@ -99,10 +100,13 @@ export function ModuleDrawer({
                 {user?.email}
               </Text>
             </View>
+            {onLogoutPress ? <>
             <Pressable accessibilityLabel="Cerrar sesión" hitSlop={8} onPress={onLogoutPress} style={styles.logout}>
               <Icon source="logout" color={COLORS.error} size={22} />
             </Pressable>
+            </> : null}
           </View>
+          </> : null}
         </SafeAreaView>
       </View>
     </Modal>

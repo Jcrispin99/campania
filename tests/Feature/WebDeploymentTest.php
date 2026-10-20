@@ -27,7 +27,7 @@ it('serves the compiled app for browser routes while keeping API and missing ass
         $this->get('/')->assertOk()->assertHeader('Content-Type', 'text/html; charset=UTF-8');
         $this->get('/module/atenciones')->assertOk();
         $this->get('/module/campania/pacientes')->assertOk();
-        $this->getJson('/api/v1/pacientes')->assertUnauthorized();
+        $this->getJson('/api/v1/pacientes')->assertOk();
         $this->getJson('/api/v1/no-existe')->assertNotFound();
         $this->get('/_expo/missing.js')->assertNotFound();
         $this->get('/missing.css')->assertNotFound();

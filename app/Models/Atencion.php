@@ -13,15 +13,15 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $paciente_id
- * @property int $user_id
- * @property string $valor_1
+ * @property int|null $user_id
+ * @property string|null $valor_1
  * @property bool $diabetes
  * @property bool $hipertension
  * @property bool $ayuna
  * @property string|null $otros
  * @property Carbon $fecha
  * @property-read Paciente $paciente
- * @property-read User $user
+ * @property-read User|null $user
  */
 final class Atencion extends Model
 {

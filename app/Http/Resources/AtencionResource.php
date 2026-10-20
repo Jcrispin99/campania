@@ -24,7 +24,7 @@ final class AtencionResource extends JsonResource
             'ayuna' => $this->ayuna,
             'otros' => $this->otros,
             'fecha' => $this->fecha->format('Y-m-d'),
-            'registrado_por' => $this->whenLoaded('user', fn (): string => $this->user->name),
+            'registrado_por' => $this->whenLoaded('user', fn (): ?string => $this->user?->name),
         ];
     }
 }

@@ -193,6 +193,7 @@ export const MENU_MODULES: MenuModule[] = [
   },
   {
     id: 'access',
+    enabled: false,
     title: 'Usuarios',
     subtitle: 'Usuarios, roles y permisos',
     icon: 'account-group-outline',

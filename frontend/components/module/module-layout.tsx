@@ -1,8 +1,7 @@
-import { Redirect, router, type Href } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Snackbar } from 'react-native-paper';
+import { Snackbar } from 'react-native-paper';
 import { getVisibleMenu, type MenuItem, type MenuModule } from '../../config/menu';
-import { useAuth } from '../../lib/auth-context';
 import { AppScreenLayout } from '../layout/app-screen-layout';
 import { ApplicationSwitcher } from '../navigation/application-switcher';
 import { ModuleDrawer } from '../navigation/module-drawer';
@@ -16,7 +15,6 @@ type ModuleLayoutProps = {
 };
 
 export function ModuleLayout({ children, module, selectedItemId }: ModuleLayoutProps) {
-  const { user, logout, isLoading } = useAuth();
   const [applicationsVisible, setApplicationsVisible] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [message, setMessage] = useState('');
@@ -34,15 +32,6 @@ export function ModuleLayout({ children, module, selectedItemId }: ModuleLayoutP
     } as Href);
   }
 
-  async function handleLogout() {
-    setDrawerVisible(false);
-    await logout();
-    router.replace('/login');
-  }
-
-  if (isLoading) return <ActivityIndicator style={{ flex: 1 }} />;
-  if (!user) return <Redirect href="/login" />;
-
   return (
     <AppScreenLayout
       icon={module.icon}
@@ -50,9 +39,7 @@ export function ModuleLayout({ children, module, selectedItemId }: ModuleLayoutP
       onApplicationsPress={() => setApplicationsVisible(true)}
       onMenuPress={() => setDrawerVisible(true)}
       onNotificationsPress={() => setMessage('No tienes notificaciones nuevas')}
-      onProfilePress={() => setDrawerVisible(true)}
       title={module.title}
-      userName={user?.name}
     >
       {children}
 
@@ -70,9 +57,7 @@ export function ModuleLayout({ children, module, selectedItemId }: ModuleLayoutP
         }}
         onClose={() => setDrawerVisible(false)}
         onItemPress={openItem}
-        onLogoutPress={handleLogout}
         selectedItemId={selectedItemId}
-        user={user}
         visible={drawerVisible}
       />
       <Snackbar duration={2600} onDismiss={() => setMessage('')} visible={Boolean(message)}>

@@ -158,16 +158,12 @@ export function AttentionScreen() {
       setSaveError('Selecciona un paciente.');
       return;
     }
-    if (!/^\d{1,3}$/.test(age.trim()) || Number(age) > 120) {
+    if (age.trim() && (!/^\d{1,3}$/.test(age.trim()) || Number(age) > 120)) {
       setSaveError('Ingresa una edad válida entre 0 y 120 años.');
       return;
     }
     if (emailError(emails)) {
       setSaveError(emailError(emails));
-      return;
-    }
-    if (!pressure.trim()) {
-      setSaveError('Ingresa la presión arterial.');
       return;
     }
 
@@ -177,9 +173,9 @@ export function AttentionScreen() {
     try {
       await api.post('/atenciones', {
         dni: patient.dni,
-        edad: Number(age.trim()),
+        ...(age.trim() ? { edad: Number(age.trim()) } : {}),
         correos: emailPayload(emails),
-        valor_1: pressure.trim(),
+        valor_1: pressure.trim() || null,
         ...conditions,
         otros: others.trim() || null,
         fecha: localDate(),
@@ -261,7 +257,7 @@ export function AttentionScreen() {
         <View style={styles.inline}>
           <TextInput
             mode="outlined"
-            label="Edad *"
+            label="Edad"
             value={age}
             onChangeText={value => { setAge(value); setSaveError(''); }}
             placeholder="Años"
@@ -273,7 +269,7 @@ export function AttentionScreen() {
           />
           <TextInput
             mode="outlined"
-            label="Presión arterial *"
+            label="Presión arterial"
             value={pressure}
             onChangeText={value => { setPressure(value); setSaveError(''); }}
             placeholder="Ej. 120/80"
@@ -282,6 +278,7 @@ export function AttentionScreen() {
             style={styles.pressure}
           />
         </View>
+        <Text style={styles.help}>Edad y presión arterial son opcionales.</Text>
         <View style={styles.conditions}>
           <Text variant="titleSmall">El paciente:</Text>
           <View style={styles.conditionList}>
@@ -312,7 +309,7 @@ export function AttentionScreen() {
           disabled={saving || !patient}
         />
         {saveError ? <Text accessibilityLiveRegion="polite" style={styles.error}>{saveError}</Text> : null}
-        <Button mode="contained" icon="content-save-outline" loading={saving} disabled={saving || savingEmails || !patient || !age.trim() || !pressure.trim()} onPress={() => void save()}>
+        <Button mode="contained" icon="content-save-outline" loading={saving} disabled={saving || savingEmails || !patient} onPress={() => void save()}>
           Guardar atención
         </Button>
       </View>

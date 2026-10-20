@@ -5,7 +5,6 @@ import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider } from '../lib/auth-context';
 import { paperTheme } from '../theme/colors';
 import type { Settings } from 'react-native-paper/lib/typescript/core/settings';
 
@@ -19,10 +18,8 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <PaperProvider settings={paperSettings} theme={paperTheme}>
-        <AuthProvider>
-          <StatusBar style="dark" />
-          <Slot />
-        </AuthProvider>
+        <StatusBar style="dark" />
+        <Slot />
       </PaperProvider>
     </SafeAreaProvider>
   );

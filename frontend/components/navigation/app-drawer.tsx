@@ -11,7 +11,7 @@ type AppDrawerProps = {
   onHomePress: () => void;
   onSettingsPress: () => void;
   onHelpPress: () => void;
-  onLogoutPress: () => void;
+  onLogoutPress?: () => void;
 };
 
 export function AppDrawer({
@@ -32,12 +32,13 @@ export function AppDrawer({
             <View style={styles.logo}>
               <Icon source="view-grid-outline" color={COLORS.onPrimary} size={24} />
             </View>
-            <Text style={styles.brand}>Mayoreo</Text>
+            <Text style={styles.brand}>Campaña</Text>
             <Pressable accessibilityLabel="Cerrar menú" hitSlop={8} onPress={onClose} style={styles.close}>
               <Icon source="close" color={COLORS.textMuted} size={23} />
             </Pressable>
           </View>
 
+          {user ? <>
           <View style={styles.profileCard}>
             <View style={styles.profileAvatar}>
               <Text style={styles.profileInitials}>{getInitials(user?.name)}</Text>
@@ -51,6 +52,8 @@ export function AppDrawer({
               </Text>
             </View>
           </View>
+
+          </> : null}
 
           <Text style={styles.label}>MENÚ</Text>
           <Pressable onPress={onHomePress} style={[styles.item, styles.itemActive]}>
@@ -68,11 +71,13 @@ export function AppDrawer({
 
           <View style={styles.spacer} />
           <View style={styles.divider} />
+          {onLogoutPress ? <>
           <Pressable accessibilityRole="button" onPress={onLogoutPress} style={styles.item}>
             <Icon source="logout" color={COLORS.error} size={23} />
             <Text style={styles.logoutText}>Cerrar sesión</Text>
           </Pressable>
-          <Text style={styles.version}>Mayoreo móvil · v1.0</Text>
+          </> : null}
+          <Text style={styles.version}>Campaña web · v1.0</Text>
         </SafeAreaView>
       </View>
     </Modal>

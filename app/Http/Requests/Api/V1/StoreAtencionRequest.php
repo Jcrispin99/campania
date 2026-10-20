@@ -10,7 +10,7 @@ final class StoreAtencionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return true;
     }
 
     /** @return array<string, list<mixed>> */
@@ -19,9 +19,9 @@ final class StoreAtencionRequest extends FormRequest
         return [
             ...PacienteCorreoRules::rules(),
             'dni' => ['required', 'string', 'regex:/^[0-9]{8}$/', 'exists:pacientes,dni'],
-            'edad' => ['required', 'integer', 'min:0', 'max:120'],
+            'edad' => ['nullable', 'integer', 'min:0', 'max:120'],
             'correo_electronico' => ['nullable', 'string', 'email', 'max:255'],
-            'valor_1' => ['required', 'string', 'max:255'],
+            'valor_1' => ['nullable', 'string', 'max:255'],
             'diabetes' => ['sometimes', 'boolean'],
             'hipertension' => ['sometimes', 'boolean'],
             'ayuna' => ['sometimes', 'boolean'],
@@ -36,12 +36,10 @@ final class StoreAtencionRequest extends FormRequest
         return [
             'dni.exists' => 'No existe un paciente con este DNI.',
             'dni.regex' => 'El DNI debe tener 8 dígitos.',
-            'edad.required' => 'Ingresa la edad del paciente.',
             'edad.integer' => 'La edad debe ser un número entero.',
             'edad.min' => 'Ingresa una edad válida entre 0 y 120 años.',
             'edad.max' => 'Ingresa una edad válida entre 0 y 120 años.',
             'correo_electronico.email' => 'Ingresa un correo electrónico válido.',
-            'valor_1.required' => 'Ingresa la presión arterial.',
             'valor_1.string' => 'La presión arterial debe ser un texto.',
         ];
     }

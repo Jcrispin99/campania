@@ -8,10 +8,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('protects patient data from anonymous requests', function (): void {
-    $this->getJson('/api/v1/pacientes')->assertUnauthorized();
-    $this->getJson('/api/v1/pacientes/dni/01234567')->assertUnauthorized();
-    $this->postJson('/api/v1/pacientes', [])->assertUnauthorized();
+it('allows the campaign directory without a login', function (): void {
+    $this->getJson('/api/v1/pacientes')->assertOk();
+    $this->getJson('/api/v1/pacientes/dni/01234567')->assertNotFound();
+    $this->postJson('/api/v1/pacientes', [])->assertUnprocessable();
 });
 
 it('stores all campaign columns and preserves leading zeroes in the DNI', function (): void {

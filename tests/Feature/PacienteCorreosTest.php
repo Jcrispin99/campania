@@ -10,9 +10,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('requires authentication for editing patient emails', function (): void {
+it('allows editing patient emails without a login', function (): void {
     $patient = Paciente::factory()->create();
-    $this->putJson('/api/v1/pacientes/'.$patient->id.'/correos', ['correos' => []])->assertUnauthorized();
+    $this->putJson('/api/v1/pacientes/'.$patient->id.'/correos', ['correos' => []])->assertOk();
 });
 
 it('creates a patient with several unique emails and exactly one default', function (): void {

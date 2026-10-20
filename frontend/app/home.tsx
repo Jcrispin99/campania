@@ -1,17 +1,15 @@
-import { Redirect, router, type Href } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { ActivityIndicator, Snackbar } from 'react-native-paper';
+import { Snackbar } from 'react-native-paper';
 import { AppScreenLayout } from '../components/layout/app-screen-layout';
 import { ApplicationGrid } from '../components/menu/application-grid';
 import { AppDrawer } from '../components/navigation/app-drawer';
 import { getVisibleMenu, type MenuModule } from '../config/menu';
-import { useAuth } from '../lib/auth-context';
 
 const APP_MODULES = getVisibleMenu();
 
 export default function HomeScreen() {
-  const { user, logout, isLoading } = useAuth();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -25,22 +23,11 @@ export default function HomeScreen() {
     if (settingsModule) openModule(settingsModule);
   }
 
-  async function handleLogout() {
-    setDrawerVisible(false);
-    await logout();
-    router.replace('/login');
-  }
-
-  if (isLoading) return <ActivityIndicator style={{ flex: 1 }} />;
-  if (!user) return <Redirect href="/login" />;
-
   return (
     <AppScreenLayout
       onMenuPress={() => setDrawerVisible(true)}
       onNotificationsPress={() => setMessage('No tienes notificaciones nuevas')}
-      onProfilePress={() => setDrawerVisible(true)}
       title="Pacientes"
-      userName={user?.name}
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <ApplicationGrid modules={APP_MODULES} onModulePress={openModule} />
@@ -53,9 +40,7 @@ export default function HomeScreen() {
           setMessage('Ayuda estará disponible próximamente');
         }}
         onHomePress={() => setDrawerVisible(false)}
-        onLogoutPress={handleLogout}
         onSettingsPress={openSettings}
-        user={user}
         visible={drawerVisible}
       />
 

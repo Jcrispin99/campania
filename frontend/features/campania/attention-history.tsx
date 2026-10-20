@@ -10,13 +10,13 @@ import { errorMessage, type Patient } from './campania-screen';
 type Attention = {
   id: number;
   paciente: Patient;
-  valor_1: string;
+  valor_1: string | null;
   diabetes: boolean;
   hipertension: boolean;
   ayuna: boolean;
   otros: string | null;
   fecha: string;
-  registrado_por: string;
+  registrado_por: string | null;
 };
 type Page = { items: Attention[]; current_page: number; last_page: number; total: number };
 const emptyPage: Page = { items: [], current_page: 1, last_page: 1, total: 0 };
@@ -59,10 +59,9 @@ export function AttentionHistory() {
     { key: 'paciente', title: 'Paciente', style: { width: 250, paddingRight: 12 }, renderCell: item => <Text>{item.paciente.nombre_completo}</Text> },
     { key: 'edad', title: 'Edad', style: { width: 70 }, renderCell: item => <Text>{item.paciente.edad ?? '—'}</Text> },
     { key: 'correo', title: 'Correo', style: { width: 220, paddingRight: 12 }, renderCell: item => <Text numberOfLines={2}>{item.paciente.correo_electronico ?? '—'}</Text> },
-    { key: 'presion', title: 'Presión arterial', style: { width: 150, paddingRight: 12 }, renderCell: item => <Text numberOfLines={3}>{item.valor_1}</Text> },
+    { key: 'presion', title: 'Presión arterial', style: { width: 150, paddingRight: 12 }, renderCell: item => <Text numberOfLines={3}>{item.valor_1 ?? '—'}</Text> },
     { key: 'condiciones', title: 'Diabetes / Hipert. / Ayuna', style: { width: 200, paddingRight: 12 }, renderCell: item => <Text>{conditions(item)}</Text> },
     { key: 'otros', title: 'Otros', style: { width: 240, paddingRight: 12 }, renderCell: item => <Text numberOfLines={3}>{item.otros ?? '—'}</Text> },
-    { key: 'usuario', title: 'Registrado por', style: { width: 180 }, renderCell: item => <Text>{item.registrado_por}</Text> },
   ];
 
   return <View style={styles.screen}>
@@ -78,7 +77,7 @@ export function AttentionHistory() {
       <Button onPress={() => { setQuery(''); setSearch(''); setPage(1); }}>Limpiar</Button>
     </View>
     <ScrollView horizontal contentContainerStyle={{ flexGrow: 1 }} style={{ flex: 1 }}>
-      <View style={{ width: 1560, flex: 1 }}>
+      <View style={{ width: 1380, flex: 1 }}>
         <DataTable
           columns={columns}
           data={attentions.items}
@@ -107,12 +106,12 @@ export function AttentionHistory() {
           <Text>Edad: {selected.paciente.edad ?? '—'}</Text>
           <Text>Correo: {selected.paciente.correo_electronico ?? '—'}</Text>
           <Text>Fecha: {selected.fecha}</Text>
-          <Text>Presión arterial: {selected.valor_1}</Text>
+          <Text>Presión arterial: {selected.valor_1 ?? '—'}</Text>
           <Text>Diabetes: {selected.diabetes ? 'Sí' : 'No'}</Text>
           <Text>Hipertensión: {selected.hipertension ? 'Sí' : 'No'}</Text>
           <Text>Ayuna: {selected.ayuna ? 'Sí' : 'No'}</Text>
           <Text>Otros: {selected.otros ?? '—'}</Text>
-          <Text style={styles.muted}>Registrado por {selected.registrado_por}</Text>
+          {selected.registrado_por ? <Text style={styles.muted}>Registrado por {selected.registrado_por}</Text> : null}
         </> : null}
       </ScrollView></Dialog.ScrollArea>
       <Dialog.Actions><Button onPress={() => setSelected(null)}>Cerrar</Button></Dialog.Actions>

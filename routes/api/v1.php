@@ -49,11 +49,8 @@ Route::middleware('throttle:auth')->group(function (): void {
     Route::post('login', [AuthController::class, 'login'])->name('api.v1.login');
 });
 
-// Protected routes with authenticated rate limiter (120/min)
-Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function (): void {
-    Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.logout');
-    Route::get('me', [AuthController::class, 'me'])->name('api.v1.me');
-
+// Campaign workflow is available without a login.
+Route::middleware('throttle:api')->group(function (): void {
     Route::get('pacientes/dni/{dni}', [PacienteController::class, 'porDni'])
         ->where('dni', '[0-9]{8}')->name('api.v1.pacientes.dni');
     Route::put('pacientes/{paciente}/correos', [PacienteController::class, 'updateCorreos'])->name('api.v1.pacientes.correos');
@@ -61,6 +58,12 @@ Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function ()
         ->parameters(['pacientes' => 'paciente'])->except('destroy')->names('api.v1.pacientes');
     Route::apiResource('atenciones', AtencionController::class)
         ->only(['index', 'store'])->names('api.v1.atenciones');
+});
+
+// Protected routes with authenticated rate limiter (120/min)
+Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function (): void {
+    Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.logout');
+    Route::get('me', [AuthController::class, 'me'])->name('api.v1.me');
 
     // Email verification
     Route::post('email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
