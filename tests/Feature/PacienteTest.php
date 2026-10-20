@@ -74,6 +74,27 @@ it('updates a patient while retaining its own DNI and searches paginated results
     $this->assertDatabaseHas('pacientes', ['id' => $paciente->id, 'nombre_completo' => 'Nombre actualizado']);
 });
 
+it('limits search results per page and lists the closest matches first', function (): void {
+    $this->actingAs(User::factory()->create());
+    Paciente::factory()->create(['dni' => '10000075', 'nombre_completo' => 'Aguilar Rojas, Ana']);
+    Paciente::factory()->create(['dni' => '75000001', 'nombre_completo' => 'Zapata Luna, Rosa']);
+    Paciente::factory()->create(['dni' => '20075000', 'nombre_completo' => 'Benites Cruz, Luis']);
+    foreach (range(1, 6) as $number) {
+        Paciente::factory()->create(['dni' => sprintf('3%02d75000', $number), 'nombre_completo' => "Paciente {$number}"]);
+    }
+
+    $this->getJson('/api/v1/pacientes?search=75&per_page=5')->assertOk()
+        ->assertJsonCount(5, 'data.items')->assertJsonPath('data.total', 9)
+        ->assertJsonPath('data.last_page', 2)->assertJsonPath('data.items.0.dni', '75000001');
+    $this->getJson('/api/v1/pacientes?search=75&per_page=5&page=2')->assertOk()
+        ->assertJsonCount(4, 'data.items');
+    $this->getJson('/api/v1/pacientes?search=luna')->assertOk()
+        ->assertJsonPath('data.total', 1)->assertJsonPath('data.items.0.dni', '75000001');
+    $this->getJson('/api/v1/pacientes?search=be')->assertOk()
+        ->assertJsonPath('data.items.0.nombre_completo', 'Benites Cruz, Luis');
+    $this->getJson('/api/v1/pacientes?per_page=100')->assertUnprocessable()->assertJsonValidationErrors(['per_page']);
+});
+
 it('rejects invalid ages without storing a patient', function (): void {
     $this->actingAs(User::factory()->create());
     foreach ([-1, 121, 25.5, 'abc'] as $edad) {

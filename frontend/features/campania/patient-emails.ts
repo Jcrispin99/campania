@@ -1,9 +1,10 @@
-export type PatientEmail = { id?: number; correo: string; predeterminado: boolean };
+// `draft` marca lo que se está escribiendo en "Agregar correo" y todavía no pasó a la tabla.
+export type PatientEmail = { id?: number; correo: string; predeterminado: boolean; draft?: boolean };
+
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function emailDrafts(patient?: { correos?: PatientEmail[] }): PatientEmail[] {
-  return patient?.correos?.length
-    ? patient.correos.map(email => ({ ...email }))
-    : [{ correo: '', predeterminado: true }];
+  return patient?.correos?.map(email => ({ ...email })) ?? [];
 }
 
 export function emailPayload(drafts: PatientEmail[]): PatientEmail[] {
@@ -16,7 +17,7 @@ export function emailPayload(drafts: PatientEmail[]): PatientEmail[] {
 
 export function emailError(drafts: PatientEmail[]): string {
   const emails = emailPayload(drafts);
-  if (emails.some(email => email.correo.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.correo))) {
+  if (emails.some(email => email.correo.length > 254 || !EMAIL_PATTERN.test(email.correo))) {
     return 'Ingresa correos electrónicos válidos o deja el campo vacío.';
   }
   if (new Set(emails.map(email => email.correo)).size !== emails.length) return 'No repitas un correo en el paciente.';

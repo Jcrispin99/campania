@@ -20,15 +20,22 @@ final class PacienteController extends ApiController
 {
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+        ]);
         $search = $request->string('search')->trim()->toString();
         $pacientes = Paciente::query()->with('correos')
             ->when($search !== '', function (Builder $query) use ($search): void {
                 $query->where(function (Builder $inner) use ($search): void {
                     $inner->where('nombre_completo', 'like', "%{$search}%")
                         ->orWhere('dni', 'like', "%{$search}%");
-                });
+                })->orderByRaw(
+                    'CASE WHEN dni = ? THEN 0 WHEN dni LIKE ? THEN 1 WHEN nombre_completo LIKE ? THEN 2 WHEN nombre_completo LIKE ? THEN 3 ELSE 4 END',
+                    [$search, "{$search}%", "{$search}%", "% {$search}%"],
+                );
             })
-            ->orderBy('nombre_completo')->orderBy('id')->paginate(15);
+            ->orderBy('nombre_completo')->orderBy('id')->paginate($request->integer('per_page', 15));
 
         return $this->success([
             'items' => PacienteResource::collection($pacientes),
