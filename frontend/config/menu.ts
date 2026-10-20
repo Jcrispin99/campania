@@ -33,7 +33,22 @@ export type MenuModule = {
 
 export const MENU_MODULES: MenuModule[] = [
   {
+    id: 'campania', title: 'Pacientes', subtitle: 'Directorio de trabajadores',
+    icon: 'hospital-box-outline', color: '#0F766E', softColor: '#CCFBF1', order: 1,
+    items: [
+      { id: 'pacientes', title: 'Pacientes', description: 'Directorio de trabajadores', icon: 'account-multiple-outline', group: 'Pacientes' },
+    ],
+  },
+  {
+    id: 'atenciones', title: 'Atención', subtitle: 'Seleccionar paciente y guardar resultado',
+    icon: 'clipboard-pulse-outline', color: '#2563EB', softColor: '#DBEAFE', order: 2,
+    items: [
+      { id: 'atenciones', title: 'Atención', description: 'Seleccionar paciente y guardar resultado', icon: 'clipboard-pulse-outline', group: 'Atención' },
+    ],
+  },
+  {
     id: 'inventory',
+    enabled: false,
     title: 'Inventario',
     subtitle: 'Productos, tiendas y almacenes',
     icon: 'warehouse',
@@ -80,6 +95,7 @@ export const MENU_MODULES: MenuModule[] = [
   },
   {
     id: 'purchases',
+    enabled: false,
     title: 'Compras',
     subtitle: 'Órdenes de compra y proveedores',
     icon: 'cart-arrow-down',
@@ -105,6 +121,7 @@ export const MENU_MODULES: MenuModule[] = [
   },
   {
     id: 'pos',
+    enabled: false,
     title: 'POS',
     subtitle: 'Cajas, cobros y correlativos',
     icon: 'cash-register',
@@ -137,6 +154,7 @@ export const MENU_MODULES: MenuModule[] = [
   },
   {
     id: 'customers',
+    enabled: false,
     title: 'Clientes',
     subtitle: 'Directorio y datos de contacto',
     icon: 'account-heart-outline',
@@ -155,6 +173,7 @@ export const MENU_MODULES: MenuModule[] = [
   },
   {
     id: 'accounting',
+    enabled: false,
     title: 'Contabilidad',
     subtitle: 'Ventas, cobros y análisis',
     icon: 'chart-box-outline',

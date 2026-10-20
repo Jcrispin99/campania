@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\AtencionController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CashRegisterController;
 use App\Http\Controllers\Api\V1\CashRegisterMovementController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Api\V1\DocumentSeriesController;
 use App\Http\Controllers\Api\V1\FiscalDocumentController;
 use App\Http\Controllers\Api\V1\InventoryMovementController;
 use App\Http\Controllers\Api\V1\InventoryTransferController;
+use App\Http\Controllers\Api\V1\PacienteController;
 use App\Http\Controllers\Api\V1\PermissionController;
 use App\Http\Controllers\Api\V1\PosCatalogController;
 use App\Http\Controllers\Api\V1\PosCheckoutController;
@@ -51,6 +53,13 @@ Route::middleware('throttle:auth')->group(function (): void {
 Route::middleware(['auth:sanctum', 'throttle:authenticated'])->group(function (): void {
     Route::post('logout', [AuthController::class, 'logout'])->name('api.v1.logout');
     Route::get('me', [AuthController::class, 'me'])->name('api.v1.me');
+
+    Route::get('pacientes/dni/{dni}', [PacienteController::class, 'porDni'])
+        ->where('dni', '[0-9]{8}')->name('api.v1.pacientes.dni');
+    Route::apiResource('pacientes', PacienteController::class)
+        ->parameters(['pacientes' => 'paciente'])->except('destroy')->names('api.v1.pacientes');
+    Route::apiResource('atenciones', AtencionController::class)
+        ->only(['index', 'store'])->names('api.v1.atenciones');
 
     // Email verification
     Route::post('email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])

@@ -12,6 +12,8 @@ import { SupplierList } from '../../features/purchases/supplier-list';
 import { CashRegisterList } from '../../features/pos/cash-register-list';
 import { DocumentSeriesList } from '../../features/pos/document-series-list';
 import { PosPaymentMethodList } from '../../features/pos/pos-payment-method-list';
+import { AttentionScreen } from '../../features/campania/attention-screen';
+import { CampaniaScreen } from '../../features/campania/campania-screen';
 import { ModuleLayout } from './module-layout';
 
 const APP_MODULES = getVisibleMenu();
@@ -39,7 +41,11 @@ export function ModuleScreen() {
 
   return (
     <ModuleLayout module={module} selectedItemId={selectedItem.id}>
-      {module.id === 'inventory' && selectedItem.id === 'product-list' ? (
+      {module.id === 'atenciones' ? (
+        <AttentionScreen />
+      ) : module.id === 'campania' ? (
+        <CampaniaScreen section="pacientes" />
+      ) : module.id === 'inventory' && selectedItem.id === 'product-list' ? (
         <ProductList onCreate={() => router.push('/products/new')} onEdit={editProduct} />
       ) : module.id === 'inventory' && selectedItem.id === 'stores' ? (
         <InventoryReferenceList kind="stores" />

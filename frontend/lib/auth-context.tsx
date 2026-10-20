@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, setAuthToken } from './api';
 
-const TOKEN_STORAGE_KEY = 'mayoreo.auth.token';
+const TOKEN_STORAGE_KEY = 'campania.auth.token';
 
 type User = {
   id: number;

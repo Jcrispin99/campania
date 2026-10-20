@@ -1,6 +1,6 @@
-import { router, type Href } from 'expo-router';
+import { Redirect, router, type Href } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { Snackbar } from 'react-native-paper';
+import { ActivityIndicator, Snackbar } from 'react-native-paper';
 import { getVisibleMenu, type MenuItem, type MenuModule } from '../../config/menu';
 import { useAuth } from '../../lib/auth-context';
 import { AppScreenLayout } from '../layout/app-screen-layout';
@@ -16,7 +16,7 @@ type ModuleLayoutProps = {
 };
 
 export function ModuleLayout({ children, module, selectedItemId }: ModuleLayoutProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const [applicationsVisible, setApplicationsVisible] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [message, setMessage] = useState('');
@@ -39,6 +39,9 @@ export function ModuleLayout({ children, module, selectedItemId }: ModuleLayoutP
     await logout();
     router.replace('/login');
   }
+
+  if (isLoading) return <ActivityIndicator style={{ flex: 1 }} />;
+  if (!user) return <Redirect href="/login" />;
 
   return (
     <AppScreenLayout

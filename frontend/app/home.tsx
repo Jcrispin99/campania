@@ -1,7 +1,7 @@
-import { router, type Href } from 'expo-router';
+import { Redirect, router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Snackbar } from 'react-native-paper';
+import { ActivityIndicator, Snackbar } from 'react-native-paper';
 import { AppScreenLayout } from '../components/layout/app-screen-layout';
 import { ApplicationGrid } from '../components/menu/application-grid';
 import { AppDrawer } from '../components/navigation/app-drawer';
@@ -11,7 +11,7 @@ import { useAuth } from '../lib/auth-context';
 const APP_MODULES = getVisibleMenu();
 
 export default function HomeScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -31,12 +31,15 @@ export default function HomeScreen() {
     router.replace('/login');
   }
 
+  if (isLoading) return <ActivityIndicator style={{ flex: 1 }} />;
+  if (!user) return <Redirect href="/login" />;
+
   return (
     <AppScreenLayout
       onMenuPress={() => setDrawerVisible(true)}
       onNotificationsPress={() => setMessage('No tienes notificaciones nuevas')}
       onProfilePress={() => setDrawerVisible(true)}
-      title="Mayoreo"
+      title="Pacientes"
       userName={user?.name}
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
