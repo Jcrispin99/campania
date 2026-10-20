@@ -12,7 +12,7 @@ export { localDate };
 const fields = [
   ['numero', 'N°'], ['nombre_completo', 'Nombre completo'], ['dni', 'Nº de documento'],
   ['nombre_posicion', 'Nombre posición'], ['nombre_area', 'Nombre de área'],
-  ['nombre_unidad_org', 'Nombre unidad org.'], ['telefono', 'Teléfono'],
+  ['nombre_unidad_org', 'Nombre unidad org.'],
   ['correo_electronico', 'Correo electrónico'], ['asistencia', 'Asistencia'],
   ['presion_arterial', 'Presión arterial'], ['fecha', 'Fecha'],
 ] as const;
@@ -149,7 +149,7 @@ export function CampaniaScreen({ section }: { section: 'pacientes' | 'atenciones
     <Portal><Dialog visible={dialog !== null} onDismiss={() => { if (!saving && !lookingUp) setDialog(null); }} style={styles.dialog}>
       <Dialog.Title>{dialog === 'paciente' ? (editing ? 'Editar paciente' : 'Nuevo paciente') : 'Registrar atención'}</Dialog.Title>
       <Dialog.ScrollArea><ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
-        {dialog === 'paciente' ? fields.map(([key, title]) => <TextInput key={key} mode="outlined" label={`${title}${key === 'nombre_completo' || key === 'dni' ? ' *' : key === 'fecha' ? ' (AAAA-MM-DD)' : ''}`} value={form[key]} onChangeText={value => setForm(current => ({ ...current, [key]: value }))} keyboardType={key === 'dni' || key === 'numero' ? 'number-pad' : key === 'telefono' ? 'phone-pad' : key === 'correo_electronico' ? 'email-address' : 'default'} maxLength={key === 'dni' ? 8 : key === 'telefono' ? 30 : 255} autoCapitalize={key === 'correo_electronico' ? 'none' : 'sentences'} disabled={saving} />) : <>
+        {dialog === 'paciente' ? fields.map(([key, title]) => <TextInput key={key} mode="outlined" label={`${title}${key === 'nombre_completo' || key === 'dni' ? ' *' : key === 'fecha' ? ' (AAAA-MM-DD)' : ''}`} value={form[key]} onChangeText={value => setForm(current => ({ ...current, [key]: value }))} keyboardType={key === 'dni' || key === 'numero' ? 'number-pad' : key === 'correo_electronico' ? 'email-address' : 'default'} maxLength={key === 'dni' ? 8 : 255} autoCapitalize={key === 'correo_electronico' ? 'none' : 'sentences'} disabled={saving} />) : <>
           <TextInput mode="outlined" label="DNI del paciente" value={dni} onChangeText={value => { setDni(value); setPatient(null); }} keyboardType="number-pad" maxLength={8} disabled={lookingUp || saving} />
           <Button mode="outlined" loading={lookingUp} disabled={lookingUp || saving} onPress={() => void lookup()}>Buscar paciente</Button>
           {patient ? <View style={styles.patient}><Text variant="titleMedium">{patient.nombre_completo}</Text><Text>{patient.nombre_area ?? 'Sin área registrada'}</Text><Text>DNI: {patient.dni}</Text></View> : null}

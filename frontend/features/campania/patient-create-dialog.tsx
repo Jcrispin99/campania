@@ -17,7 +17,6 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
   const [dni, setDni] = useState('');
   const [age, setAge] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -29,7 +28,6 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
     setDni(isDocument ? query : '');
     setAge('');
     setEmail('');
-    setPhone('');
     setError('');
   }, [visible, initialQuery]);
 
@@ -52,10 +50,6 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
       setError('Ingresa un correo electrónico válido.');
       return;
     }
-    if (!/^9\d{8}$/.test(phone.trim())) {
-      setError('El celular debe tener 9 dígitos y empezar con 9.');
-      return;
-    }
 
     setError('');
     setSaving(true);
@@ -65,7 +59,6 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
         dni: dni.trim(),
         edad: Number(age.trim()),
         correo_electronico: email.trim(),
-        telefono: phone.trim(),
       });
       onCreated(response.data.data);
     } catch (requestError) {
@@ -85,7 +78,6 @@ export function PatientCreateDialog({ visible, initialQuery, onDismiss, onCreate
             <TextInput label="DNI *" mode="outlined" value={dni} onChangeText={setDni} maxLength={8} keyboardType="number-pad" disabled={saving} />
             <TextInput label="Edad *" mode="outlined" value={age} onChangeText={setAge} maxLength={3} keyboardType="number-pad" inputMode="numeric" disabled={saving} />
             <TextInput label="Correo electrónico *" mode="outlined" value={email} onChangeText={setEmail} maxLength={255} keyboardType="email-address" inputMode="email" autoCapitalize="none" autoCorrect={false} disabled={saving} />
-            <TextInput label="Celular *" mode="outlined" value={phone} onChangeText={setPhone} maxLength={9} keyboardType="phone-pad" inputMode="tel" disabled={saving} />
             {error ? <Text accessibilityLiveRegion="polite" style={styles.error}>{error}</Text> : null}
           </ScrollView>
         </Dialog.ScrollArea>
