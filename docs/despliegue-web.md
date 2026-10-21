@@ -118,3 +118,16 @@ repetirse sin duplicar datos. Omite los correos inválidos, los que figuran en m
 de un DNI y los que ya pertenecen a otro paciente. No crea pacientes sin nombre
 cuando un DNI no existe. Estas incidencias se registran en el reporte privado.
 Los Excel y los reportes deben mantenerse fuera de `public/` y del repositorio.
+
+## Exportación de atenciones
+
+En Atención → Historial, seleccionar Desde y Hasta y pulsar Filtrar o Exportar
+Excel. Las fechas son inclusivas; si se dejan vacías se incluye todo el historial.
+La búsqueda por nombre o DNI también se aplica al Excel, incluyendo todas las
+páginas de resultados.
+
+El archivo XLSX contiene, en orden: Fecha, DNI, Paciente, Edad, Correo, Presión
+arterial, Diabetes, Hipert., Ayuna y Otros. Correo corresponde al predeterminado.
+Los campos sin dato quedan vacíos. La fecha es una celda de fecha de Excel y el
+DNI se conserva como texto. La exportación es de solo lectura y no requiere
+migraciones ni modificaciones de datos.

@@ -56,6 +56,7 @@ Route::middleware('throttle:api')->group(function (): void {
     Route::put('pacientes/{paciente}/correos', [PacienteController::class, 'updateCorreos'])->name('api.v1.pacientes.correos');
     Route::apiResource('pacientes', PacienteController::class)
         ->parameters(['pacientes' => 'paciente'])->except('destroy')->names('api.v1.pacientes');
+    Route::get('atenciones/exportar', [AtencionController::class, 'export'])->name('api.v1.atenciones.export');
     Route::apiResource('atenciones', AtencionController::class)
         ->only(['index', 'store'])->names('api.v1.atenciones');
 });
